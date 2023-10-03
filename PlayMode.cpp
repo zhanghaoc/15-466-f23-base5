@@ -8,20 +8,23 @@
 #include "gl_errors.hpp"
 #include "data_path.hpp"
 
+#include <cstdio>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 #include <random>
 
+const std::string fileName = "maze";
+
 GLuint phonebank_meshes_for_lit_color_texture_program = 0;
 Load< MeshBuffer > phonebank_meshes(LoadTagDefault, []() -> MeshBuffer const * {
-	MeshBuffer const *ret = new MeshBuffer(data_path("phone-bank.pnct"));
+	MeshBuffer const *ret = new MeshBuffer(data_path(fileName + ".pnct"));
 	phonebank_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 	return ret;
 });
 
 Load< Scene > phonebank_scene(LoadTagDefault, []() -> Scene const * {
-	return new Scene(data_path("phone-bank.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name){
+	return new Scene(data_path(fileName + ".scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name){
 		Mesh const &mesh = phonebank_meshes->lookup(mesh_name);
 
 		scene.drawables.emplace_back(transform);
@@ -39,8 +42,8 @@ Load< Scene > phonebank_scene(LoadTagDefault, []() -> Scene const * {
 
 WalkMesh const *walkmesh = nullptr;
 Load< WalkMeshes > phonebank_walkmeshes(LoadTagDefault, []() -> WalkMeshes const * {
-	WalkMeshes *ret = new WalkMeshes(data_path("phone-bank.w"));
-	walkmesh = &ret->lookup("WalkMesh");
+	WalkMeshes *ret = new WalkMeshes(data_path(fileName + ".w"));
+	walkmesh = &ret->lookup("Path");
 	return ret;
 });
 
@@ -137,6 +140,9 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 }
 
 void PlayMode::update(float elapsed) {
+	if (gameEnd) {
+		return;
+	}
 	//player walking:
 	{
 		//combine inputs into a move:
@@ -212,6 +218,17 @@ void PlayMode::update(float elapsed) {
 			player.transform->rotation = glm::normalize(adjust * player.transform->rotation);
 		}
 
+		// if palyer's position is near the end, end the game		
+		for (auto drawable : scene.drawables) {
+			if (drawable.transform->name == "End") {
+				auto dis = glm::distance(player.transform->position, drawable.transform->position);
+				if (dis < 1.5f) {
+					gameEnd = true;
+				}
+				break;
+			}
+		}
+
 		/*
 		glm::mat4x3 frame = camera->transform->make_local_to_parent();
 		glm::vec3 right = frame[0];
@@ -282,6 +299,12 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		if (gameEnd) {
+			lines.draw_text("You Win!",
+			glm::vec3(-aspect + 0.1f * H + 1.7f, -1.0 + 0.5f + 0.1f * H + 1.0f, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0xff, 0xff, 0x00, 0xff));
+		}
 	}
 	GL_ERRORS();
 }

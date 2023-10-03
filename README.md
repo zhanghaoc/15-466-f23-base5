@@ -1,8 +1,8 @@
-# (TODO: your game's title)
+# Stand High
 
-Author: (TODO: your name)
+Author: Haoxi Zhang
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+Design: you need to stand high to find a way out the maze
 
 Screen Shot:
 
@@ -10,9 +10,8 @@ Screen Shot:
 
 How To Play:
 
-(TODO: describe the controls and (if needed) goals/strategy.)
+use WASD to move. (Sorry for the simple game because I will fly to denver this Tuesday)
 
-Sources: (TODO: list a source URL for any assets you did not create yourself. Make sure you have a license for the asset.)
+Sources: 
 
 This game was built with [NEST](NEST.md).
-
